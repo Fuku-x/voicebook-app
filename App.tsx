@@ -25,7 +25,6 @@ export type TabType = 'home' | 'search' | 'record' | 'summary' | 'account';
 export type User = {
   name: string;
   email: string;
-  photoURL: string;
 };
 
 export default function App() {
