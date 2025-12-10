@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Save, X } from 'lucide-react';
+import { View, Text, TouchableOpacity, TextInput, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { Save, X } from 'lucide-react-native';
 
 type TranscriptEditScreenProps = {
   title: string;
@@ -22,54 +23,59 @@ export function TranscriptEditScreen({
   };
 
   return (
-    <div className="h-full flex flex-col bg-gradient-to-b from-gray-50 to-white">
+    <KeyboardAvoidingView 
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      className="flex-1 bg-white"
+    >
       {/* ヘッダー */}
-      <div className="px-4 py-4 bg-white border-b border-gray-100 flex items-center justify-between shadow-sm">
-        <h2 className="text-gray-900">文字起こしを編集</h2>
-        <button
-          onClick={onCancel}
-          className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-all"
+      <View className="px-4 py-4 bg-white border-b border-gray-100 flex-row items-center justify-between shadow-sm">
+        <Text className="text-gray-900 font-bold text-lg">文字起こしを編集</Text>
+        <TouchableOpacity
+          onPress={onCancel}
+          className="w-9 h-9 items-center justify-center rounded-xl bg-gray-50"
         >
-          <X className="w-5 h-5" />
-        </button>
-      </div>
+          <X size={20} color="#6B7280" />
+        </TouchableOpacity>
+      </View>
 
       {/* タイトルエリア */}
-      <div className="p-4 bg-white border-b border-gray-100">
-        <input
+      <View className="p-4 bg-white border-b border-gray-100">
+        <TextInput
           value={editedTitle}
-          onChange={(e) => setEditedTitle(e.target.value)}
-          className="w-full p-2 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent leading-relaxed shadow-sm"
+          onChangeText={setEditedTitle}
+          className="w-full p-3 bg-white border border-gray-200 rounded-xl text-base"
           placeholder="タイトルを編集..."
         />
-      </div>
+      </View>
 
       {/* テキストエリア */}
-      <div className="flex-1 p-4 overflow-auto">
-        <textarea
+      <View className="flex-1 p-4">
+        <TextInput
           value={editedTranscript}
-          onChange={(e) => setEditedTranscript(e.target.value)}
-          className="w-full h-full p-4 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none leading-relaxed shadow-sm"
+          onChangeText={setEditedTranscript}
+          className="flex-1 p-4 bg-white border border-gray-200 rounded-xl text-base leading-relaxed"
           placeholder="文字起こしテキストを編集..."
+          multiline
+          textAlignVertical="top"
         />
-      </div>
+      </View>
 
       {/* フッター */}
-      <div className="p-4 bg-white border-t border-gray-100 flex gap-2.5 shadow-sm">
-        <button
-          onClick={onCancel}
-          className="flex-1 px-5 py-3 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-xl transition-all"
+      <View className="p-4 bg-white border-t border-gray-100 flex-row gap-2.5 shadow-sm">
+        <TouchableOpacity
+          onPress={onCancel}
+          className="flex-1 px-5 py-3 border border-gray-300 rounded-xl items-center justify-center"
         >
-          キャンセル
-        </button>
-        <button
-          onClick={handleSave}
-          className="flex-1 px-5 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg hover:shadow-xl"
+          <Text className="text-gray-700 font-medium">キャンセル</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={handleSave}
+          className="flex-1 px-5 py-3 bg-blue-600 rounded-xl flex-row items-center justify-center gap-2 shadow-lg"
         >
-          <Save className="w-4 h-4" />
-          要約を再生成する
-        </button>
-      </div>
-    </div>
+          <Save size={16} color="white" />
+          <Text className="text-white font-bold">要約を再生成する</Text>
+        </TouchableOpacity>
+      </View>
+    </KeyboardAvoidingView>
   );
 }

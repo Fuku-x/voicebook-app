@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { Mic } from 'lucide-react';
+import { View, Text, TouchableOpacity, ScrollView, Alert, Modal, Image } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Mic } from 'lucide-react-native';
 import { HomeScreen } from './components/HomeScreen';
 import { SearchScreen } from './components/SearchScreen';
 import { RecordScreen } from './components/RecordScreen';
@@ -7,6 +9,7 @@ import { NoteDetailScreen } from './components/NoteDetailScreen';
 import { TranscriptEditScreen } from './components/TranscriptEditScreen';
 import { LoginScreen } from './components/LoginScreen';
 import { AccountScreen } from './components/AccountScreen';
+import { StatusBar } from 'expo-status-bar';
 
 export type Note = {
   id: string;
@@ -123,12 +126,22 @@ export default function App() {
 
   const handleTabChange = (tab: TabType) => {
     if (isRecording && tab !== 'record') {
-      const confirmed = window.confirm(
-        '録音中です。移動すると録音が破棄されます。'
+      Alert.alert(
+        '確認',
+        '録音中です。移動すると録音が破棄されます。',
+        [
+          { text: 'キャンセル', style: 'cancel' },
+          { 
+            text: 'OK', 
+            onPress: () => {
+              setIsRecording(false);
+              setRecordingData(null);
+              setActiveTab(tab);
+            }
+          }
+        ]
       );
-      if (!confirmed) return;
-      setIsRecording(false);
-      setRecordingData(null);
+      return;
     }
     
     setActiveTab(tab);
@@ -285,9 +298,9 @@ export default function App() {
           }
         }
         return (
-          <div className="flex items-center justify-center h-full text-gray-400">
-            メモを選択してください
-          </div>
+          <View className="flex-1 items-center justify-center bg-white">
+            <Text className="text-gray-400">メモを選択してください</Text>
+          </View>
         );
       case 'account':
         if (user) {
@@ -312,31 +325,35 @@ export default function App() {
     }
   };
 
-  return (
-    <div className="h-screen w-full flex flex-col bg-white relative">
-      {!isAuthenticated ? (
+  if (!isAuthenticated) {
+    return (
+      <SafeAreaView className="flex-1 bg-white">
         <LoginScreen onLogin={(userData) => {
           setUser(userData);
           setIsAuthenticated(true);
         }} />
-      ) : (
-        <>
-          <div className="flex-1 overflow-auto">
-            {renderScreen()}
-          </div>
-          
-          {/* Floating Action Button */}
-          {activeTab === 'home' && (
-            <button
-              onClick={() => handleTabChange('record')}
-              className="fixed bottom-6 left-1/2 -translate-x-1/2 w-14 h-14 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 rounded-full shadow-2xl flex items-center justify-center transition-all hover:scale-110 z-50 active:scale-95"
-              aria-label="録音を開始"
-            >
-              <Mic className="w-6 h-6 text-white" />
-            </button>
-          )}
-        </>
+        <StatusBar style="auto" />
+      </SafeAreaView>
+    );
+  }
+
+  return (
+    <SafeAreaView className="flex-1 bg-white relative" edges={['top', 'left', 'right']}>
+      <View className="flex-1">
+        {renderScreen()}
+      </View>
+      
+      {/* Floating Action Button */}
+      {activeTab === 'home' && (
+        <TouchableOpacity
+          onPress={() => handleTabChange('record')}
+          className="absolute bottom-6 left-1/2 -ml-7 w-14 h-14 bg-blue-600 rounded-full shadow-lg items-center justify-center z-50"
+          activeOpacity={0.8}
+        >
+          <Mic size={24} color="white" />
+        </TouchableOpacity>
       )}
-    </div>
+      <StatusBar style="auto" />
+    </SafeAreaView>
   );
 }

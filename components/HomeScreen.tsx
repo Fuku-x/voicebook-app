@@ -1,7 +1,7 @@
-import { Folder, Tag, ChevronRight, Search, FileText, MoreVertical } from 'lucide-react';
+import { Folder, Tag, ChevronRight, Search, FileText, MoreVertical } from 'lucide-react-native';
 import { useState } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, Image, Alert } from 'react-native';
 import type { Note, User } from '../App';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu';
 import { EditTitleModal } from './EditTitleModal';
 
 type HomeScreenProps = {
@@ -62,14 +62,6 @@ export function HomeScreen({ notes, user, onNoteClick, onSearchClick, onFolderCl
     }));
   };
 
-  const handleFolderClick = (folderName: string) => {
-    // そのフォルダーの最初のメモを開く
-    const folderNote = notes.find(note => note.folder === folderName);
-    if (folderNote) {
-      onNoteClick(folderNote.id);
-    }
-  };
-
   // フォルダー内のメモ数をカウント
   const getFolderCount = (folderName: string) => {
     return notes.filter(note => note.folder === folderName).length;
@@ -95,148 +87,154 @@ export function HomeScreen({ notes, user, onNoteClick, onSearchClick, onFolderCl
     return `${year}-${month}/${day} ${hours}:${minutes}`;
   };
 
+  const handleMenuPress = (note: Note) => {
+    Alert.alert(
+      'メニュー',
+      note.title,
+      [
+        { text: '編集', onPress: () => handleEditTitle(note.id) },
+        { 
+          text: '削除', 
+          style: 'destructive',
+          onPress: () => {
+            if (onDeleteNote) {
+              Alert.alert(
+                 '削除の確認',
+                 'このメモを削除しますか？',
+                 [
+                   { text: 'キャンセル', style: 'cancel' },
+                   { text: '削除', style: 'destructive', onPress: () => onDeleteNote(note.id) }
+                 ]
+              )
+            }
+          }
+        },
+        { text: 'キャンセル', style: 'cancel' }
+      ]
+    );
+  };
+
   return (
-    <div className="w-full min-h-screen bg-gradient-to-b from-gray-50 to-white px-4 py-4 pb-24">
-      {/* Header - Notion Style */}
-      <div className="sticky top-0 bg-gradient-to-b from-gray-50 to-white flex items-center justify-between mb-6 py-3 -mx-4 px-4 z-10">
-        <button
-          onClick={onAccountClick}
-          className="flex items-center gap-2 px-2 py-1.5 hover:bg-gray-100 rounded-lg transition-all"
-        >
-          <img
-            src={user?.photoURL || 'https://api.dicebear.com/7.x/avataaars/svg?seed=default'}
-            alt={user?.name || 'User'}
-            className="w-6 h-6 rounded"
-          />
-          <span className="text-sm text-gray-900">
-            {user?.name || 'Workspace'}
-          </span>
-        </button>
-        <button
-          onClick={onSearchClick}
-          className="w-10 h-10 flex items-center justify-center rounded-xl bg-white hover:bg-gray-100 transition-all shadow-sm hover:shadow border border-gray-100"
-          aria-label="検索"
-        >
-          <Search className="w-5 h-5 text-gray-700" />
-        </button>
-      </div>
+    <View className="flex-1 bg-white">
+      <ScrollView 
+        className="flex-1 px-4"
+        contentContainerStyle={{ paddingBottom: 96 }}
+        stickyHeaderIndices={[0]}
+      >
+        {/* Header - Sticky */}
+        <View className="bg-white pb-6 pt-2 z-10 flex-row items-center justify-between">
+          <TouchableOpacity
+            onPress={onAccountClick}
+            className="flex-row items-center gap-2 px-2 py-1.5 bg-gray-50 rounded-lg"
+          >
+            <Image
+              source={{ uri: user?.photoURL || 'https://api.dicebear.com/7.x/avataaars/png?seed=default' }}
+              className="w-6 h-6 rounded-full"
+            />
+            <Text className="text-sm text-gray-900 font-medium">
+              {user?.name || 'Workspace'}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={onSearchClick}
+            className="w-10 h-10 items-center justify-center rounded-xl bg-white shadow-sm border border-gray-100"
+            accessibilityLabel="検索"
+          >
+            <Search size={20} color="#374151" />
+          </TouchableOpacity>
+        </View>
 
-      {/* 最近のメモ */}
-      <section className="mb-6">
-        <h2 className="mb-3 text-gray-900 flex items-center gap-2">
-          <div className="w-1 h-5 bg-blue-500 rounded-full"></div>
-          最近のメモ
-        </h2>
-        <div className="space-y-2">
-          {recentNotes.map((note) => (
-            <div
-              key={note.id}
-              className="w-full bg-white hover:bg-gray-50 rounded-xl transition-all shadow-sm hover:shadow-md border border-gray-100 group"
-            >
-              <div className="flex items-center justify-between p-3">
-                <button
-                  onClick={() => onNoteClick(note.id)}
-                  className="flex-1 flex items-center justify-between text-left"
-                >
-                  <div className="flex-1">
-                    <div className="mb-1 text-gray-900 group-hover:text-blue-600 transition-colors">{note.title}</div>
-                    <div className="text-sm text-gray-500 flex items-center gap-2">
-                      <div className="w-1 h-1 rounded-full bg-gray-400"></div>
-                      {formatDate(note.date)}
-                    </div>
-                  </div>
-                  <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-blue-500 group-hover:translate-x-1 transition-all ml-2" />
-                </button>
-                
-                {/* Menu Button */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <button
-                      onClick={(e) => e.stopPropagation()}
-                      className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-200 transition-colors opacity-0 group-hover:opacity-100 ml-2"
-                      aria-label="メニュー"
-                    >
-                      <MoreVertical className="w-4 h-4 text-gray-600" />
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleEditTitle(note.id);
-                      }}
-                    >
-                      編集
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (onDeleteNote && window.confirm('このメモを削除しますか？')) {
-                          onDeleteNote(note.id);
-                        }
-                      }}
-                      className="text-red-600 focus:text-red-600"
-                    >
-                      削除
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* フォルダ一覧 - Obsidian風 */}
-      <section className="pb-4">
-        <h2 className="mb-3 text-gray-900 flex items-center gap-2">
-          <div className="w-1 h-5 bg-green-500 rounded-full"></div>
-          フォルダ
-        </h2>
-        <div className="py-2 px-1">
-          {folderStructure.map((category, catIndex) => (
-            <div key={category.category}>
-              {/* カテゴリーヘッダー - Obsidian風 */}
-              <button
-                onClick={() => toggleCategory(category.category)}
-                className="w-full flex items-center gap-2 px-3 py-2.5 hover:bg-gray-100 rounded transition-colors text-left group"
+        {/* 最近のメモ */}
+        <View className="mb-6">
+          <View className="mb-3 flex-row items-center gap-2">
+            <View className="w-1 h-5 bg-blue-500 rounded-full" />
+            <Text className="text-gray-900 font-bold text-lg">最近のメモ</Text>
+          </View>
+          <View className="gap-2">
+            {recentNotes.map((note) => (
+              <View
+                key={note.id}
+                className="w-full bg-white rounded-xl shadow-sm border border-gray-100 p-3"
               >
-                <ChevronRight className={`w-4 h-4 text-gray-500 transition-transform flex-shrink-0 ${expandedCategories[category.category] ? 'rotate-90' : ''}`} />
-                <Folder className="w-5 h-5 text-gray-500 flex-shrink-0" />
-                <span className="text-gray-700">{category.category}</span>
-              </button>
-              
-              {/* サブフォルダー - Obsidian風 */}
-              {expandedCategories[category.category] && (
-                <div className="ml-6">
-                  {category.folders.map((folder) => (
-                    <button
-                      key={folder.name}
-                      onClick={() => onFolderClick(folder.name)}
-                      className="w-full flex items-center justify-between gap-2 px-3 py-2.5 hover:bg-gray-100 rounded transition-colors text-left group"
-                    >
-                      <div className="flex items-center gap-2 flex-1 min-w-0">
-                        <FileText className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                        <span className="text-gray-600 truncate">{folder.name}</span>
-                      </div>
-                      <span className="text-sm text-gray-400 tabular-nums flex-shrink-0">{getFolderCount(folder.name)}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      </section>
+                <View className="flex-row items-center justify-between">
+                  <TouchableOpacity
+                    onPress={() => onNoteClick(note.id)}
+                    className="flex-1 flex-row items-center justify-between"
+                  >
+                    <View className="flex-1">
+                      <Text className="mb-1 text-gray-900 font-medium text-base" numberOfLines={1}>{note.title}</Text>
+                      <View className="flex-row items-center gap-2">
+                        <View className="w-1 h-1 rounded-full bg-gray-400" />
+                        <Text className="text-sm text-gray-500">{formatDate(note.date)}</Text>
+                      </View>
+                    </View>
+                    <ChevronRight size={20} color="#9CA3AF" />
+                  </TouchableOpacity>
+                  
+                  {/* Menu Button */}
+                  <TouchableOpacity
+                    onPress={() => handleMenuPress(note)}
+                    className="w-8 h-8 items-center justify-center rounded-lg ml-2"
+                  >
+                    <MoreVertical size={16} color="#4B5563" />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ))}
+          </View>
+        </View>
 
-      {/* Edit Title Modal */}
+        {/* フォルダ一覧 */}
+        <View className="pb-4">
+          <View className="mb-3 flex-row items-center gap-2">
+            <View className="w-1 h-5 bg-green-500 rounded-full" />
+            <Text className="text-gray-900 font-bold text-lg">フォルダ</Text>
+          </View>
+          <View>
+            {folderStructure.map((category) => (
+              <View key={category.category}>
+                <TouchableOpacity
+                  onPress={() => toggleCategory(category.category)}
+                  className="w-full flex-row items-center gap-2 px-3 py-3 rounded"
+                >
+                  <ChevronRight 
+                    size={16} 
+                    color="#6B7280" 
+                    style={{ transform: [{ rotate: expandedCategories[category.category] ? '90deg' : '0deg' }] }}
+                  />
+                  <Folder size={20} color="#6B7280" />
+                  <Text className="text-gray-700 font-medium">{category.category}</Text>
+                </TouchableOpacity>
+                
+                {expandedCategories[category.category] && (
+                  <View className="ml-6">
+                    {category.folders.map((folder) => (
+                      <TouchableOpacity
+                        key={folder.name}
+                        onPress={() => onFolderClick(folder.name)}
+                        className="w-full flex-row items-center justify-between gap-2 px-3 py-3 rounded"
+                      >
+                        <View className="flex-row items-center gap-2 flex-1">
+                          <FileText size={16} color="#9CA3AF" />
+                          <Text className="text-gray-600" numberOfLines={1}>{folder.name}</Text>
+                        </View>
+                        <Text className="text-sm text-gray-400">{getFolderCount(folder.name)}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
+              </View>
+            ))}
+          </View>
+        </View>
+      </ScrollView>
+
       <EditTitleModal
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
         note={editingNote}
         onTitleChange={(newTitle) => {
           if (onUpdateNote && editingNoteId && editingNote) {
-            // summaryの最初の行（# タイトル）を更新
             const lines = editingNote.summary.split('\n');
             if (lines[0].startsWith('#')) {
               lines[0] = `# ${newTitle}`;
@@ -248,6 +246,6 @@ export function HomeScreen({ notes, user, onNoteClick, onSearchClick, onFolderCl
           }
         }}
       />
-    </div>
+    </View>
   );
 }
