@@ -1,6 +1,6 @@
 import { Folder, Tag, ChevronRight, Search, FileText, MoreVertical } from 'lucide-react-native';
 import { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Image, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import type { Note, User } from '../App';
 import { EditTitleModal } from './EditTitleModal';
 
@@ -127,10 +127,6 @@ export function HomeScreen({ notes, user, onNoteClick, onSearchClick, onFolderCl
             onPress={onAccountClick}
             className="flex-row items-center gap-2 px-2 py-1.5 bg-gray-50 rounded-lg"
           >
-            <Image
-              source={{ uri: user?.photoURL || 'https://api.dicebear.com/7.x/avataaars/png?seed=default' }}
-              className="w-6 h-6 rounded-full"
-            />
             <Text className="text-sm text-gray-900 font-medium">
               {user?.name || 'Workspace'}
             </Text>

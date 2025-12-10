@@ -5,7 +5,6 @@ import Svg, { Path } from 'react-native-svg';
 type User = {
   name: string;
   email: string;
-  photoURL: string;
 };
 
 type LoginScreenProps = {
@@ -19,7 +18,6 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
     const mockUser: User = {
       name: 'Tanaka Taro',
       email: 'tanaka.taro@example.com',
-      photoURL: 'https://api.dicebear.com/7.x/avataaars/png?seed=tanaka'
     };
     onLogin(mockUser);
   };

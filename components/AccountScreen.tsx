@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { View, Text, TouchableOpacity, Image, ScrollView, TextInput, Alert, KeyboardAvoidingView, Platform } from 'react-native';
-import { ArrowLeft, Camera, LogOut } from 'lucide-react-native';
+import { View, Text, TouchableOpacity, ScrollView, TextInput, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { ArrowLeft, LogOut } from 'lucide-react-native';
 import type { User } from '../App';
 
 type AccountScreenProps = {
@@ -49,22 +49,8 @@ export function AccountScreen({ user, onBack, onUpdateUser, onLogout }: AccountS
           <Text className="text-lg font-bold text-gray-900">アカウント設定</Text>
         </View>
 
-        {/* プロフィール画像 */}
-        <View className="items-center py-8 px-4">
-          <View className="relative">
-            <Image
-              source={{ uri: user.photoURL }}
-              className="w-24 h-24 rounded-full border-4 border-white"
-              style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 6 }}
-            />
-            <TouchableOpacity className="absolute bottom-0 right-0 w-8 h-8 bg-blue-600 rounded-full items-center justify-center shadow-lg">
-              <Camera size={16} color="white" />
-            </TouchableOpacity>
-          </View>
-        </View>
-
         {/* アカウント情報 */}
-        <View className="px-4 pb-6">
+        <View className="px-4 py-6">
           <View className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
             {/* 名前 */}
             <View className="p-4 border-b border-gray-100">
