@@ -1,5 +1,7 @@
 # VoicebookLM
 
+# 以下Figma作成時
+
 ## 概要
 VoicebookLMは、音声録音と文字起こし機能を備えたメモアプリケーションです。ユーザーは音声を録音し、その内容を管理・編集することができます。
 
@@ -26,3 +28,23 @@ VoicebookLMは、音声録音と文字起こし機能を備えたメモアプリ
 * `styles/`: スタイルシート
 * `guidelines/`: プロジェクトガイドライン
 * `App.tsx`: メインアプリケーションコンポーネントとルーティング定義
+
+
+# 以下React Native作成時
+
+## 概要
+モバイルアプリケーションとして、React Nativeを用いた実装を行います。Web版の機能を踏襲しつつ、ネイティブアプリとしての操作性を提供します。
+
+## 技術スタック
+* React Native
+* TypeScript
+* React Native Paper (必須)
+* React Navigation (推奨)
+
+## ディレクトリ構造（予定）
+* `src/components/`: UIコンポーネント
+* `src/screens/`: 各画面の実装
+* `src/navigation/`: 画面遷移の設定
+* `App.tsx`: アプリケーションのエントリーポイント
+
+
