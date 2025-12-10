@@ -1,7 +1,7 @@
-import { Search, ArrowLeft, Tag, ChevronRight, MoreVertical } from 'lucide-react';
+import { Search, ArrowLeft, ChevronRight, MoreVertical, X } from 'lucide-react-native';
 import { useState } from 'react';
+import { View, Text, TouchableOpacity, TextInput, ScrollView, Alert } from 'react-native';
 import type { Note } from '../App';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu';
 import { EditTitleModal } from './EditTitleModal';
 
 type SearchScreenProps = {
@@ -47,174 +47,184 @@ export function SearchScreen({ notes, onNoteClick, onBack, initialFolder, onDele
     return `${year}-${month}/${day} ${hours}:${minutes}`;
   };
 
+  const handleMenuPress = (note: Note) => {
+    Alert.alert(
+      'メニュー',
+      note.title,
+      [
+        { 
+          text: '編集', 
+          onPress: () => {
+            setEditingNote(note);
+            setEditingNoteId(note.id);
+            setIsEditModalOpen(true);
+          }
+        },
+        { 
+          text: '削除', 
+          style: 'destructive',
+          onPress: () => {
+            if (onDeleteNote) {
+               Alert.alert(
+                 '削除の確認',
+                 'このメモを削除しますか？',
+                 [
+                   { text: 'キャンセル', style: 'cancel' },
+                   { text: '削除', style: 'destructive', onPress: () => onDeleteNote(note.id) }
+                 ]
+               );
+            }
+          }
+        },
+        { text: 'キャンセル', style: 'cancel' }
+      ]
+    );
+  };
+
   return (
-    <div className="w-full min-h-screen bg-gradient-to-b from-gray-50 to-white px-4 py-4">
-      {/* Header with Back Button */}
-      <div className="flex items-center gap-3 mb-4">
-        <button
-          onClick={onBack}
-          className="w-10 h-10 flex items-center justify-center rounded-xl bg-white hover:bg-gray-100 transition-all shadow-sm border border-gray-100"
-          aria-label="戻る"
-        >
-          <ArrowLeft className="w-5 h-5 text-gray-700" />
-        </button>
-        <div>
-          <h1 className="text-gray-900">{initialFolder ? initialFolder : '検索'}</h1>
-          {initialFolder && (
-            <p className="text-sm text-gray-500">{displayNotes.length}件のメモ</p>
-          )}
-        </div>
-      </div>
-
-      {/* 検索バー */}
-      <div className="mb-6">
-        <div className="relative">
-          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-          <input
-            type="text"
-            placeholder="メモを検索..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-12 pr-12 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm transition-all"
-          />
-          {searchQuery && (
-            <button
-              onClick={() => setSearchQuery('')}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 w-6 h-6 flex items-center justify-center rounded-full bg-gray-200 hover:bg-gray-300 transition-colors"
-              aria-label="クリア"
-            >
-              <span className="text-gray-600 text-sm">✕</span>
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* 検索結果 */}
-      {(searchQuery || initialFolder) && (
-        <section className="mb-6">
-          <h2 className="mb-3 text-gray-900 flex items-center gap-2">
-            <div className="w-1 h-5 bg-blue-500 rounded-full"></div>
-            {searchQuery ? `検索結果 (${filteredNotes.length}件)` : `すべてのメモ (${filteredNotes.length}件)`}
-          </h2>
-          <div className="space-y-2">
-            {filteredNotes.length > 0 ? (
-              filteredNotes.map((note) => (
-                <div
-                  key={note.id}
-                  className="w-full p-3 bg-white hover:bg-gray-50 rounded-xl transition-all shadow-sm hover:shadow-md border border-gray-100 group relative"
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <button
-                      onClick={() => onNoteClick(note.id)}
-                      className="flex-1 text-left"
-                    >
-                      <div className="mb-2 text-gray-900 group-hover:text-blue-600 transition-colors">{note.title}</div>
-                      <div className="flex flex-wrap gap-1.5 mb-2">
-                        {note.tags.slice(0, 3).map((tag) => (
-                          <span
-                            key={tag}
-                            className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded-lg text-xs border border-gray-200"
-                          >
-                            #{tag}
-                          </span>
-                        ))}
-                      </div>
-                      <div className="text-sm text-gray-500 flex items-center gap-2">
-                        <div className="w-1 h-1 rounded-full bg-gray-400"></div>
-                        {formatDate(note.date)}
-                      </div>
-                    </button>
-                    
-                    {/* Menu Button */}
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <button
-                          onClick={(e) => e.stopPropagation()}
-                          className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-200 transition-colors opacity-0 group-hover:opacity-100"
-                          aria-label="メニュー"
-                        >
-                          <MoreVertical className="w-4 h-4 text-gray-600" />
-                        </button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setEditingNote(note);
-                            setEditingNoteId(note.id);
-                            setIsEditModalOpen(true);
-                          }}
-                        >
-                          編集
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (onDeleteNote && window.confirm('このメモを削除しますか？')) {
-                              onDeleteNote(note.id);
-                            }
-                          }}
-                          className="text-red-600 focus:text-red-600"
-                        >
-                          削除
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="text-center py-8 text-gray-400 bg-white rounded-xl border border-gray-100">
-                該当するメモが見つかりませんでした
-              </div>
+    <View className="flex-1 bg-white">
+      <ScrollView className="flex-1 px-4 py-4" contentContainerStyle={{ paddingBottom: 32 }}>
+        {/* Header with Back Button */}
+        <View className="flex-row items-center gap-3 mb-4">
+          <TouchableOpacity
+            onPress={onBack}
+            className="w-10 h-10 items-center justify-center rounded-xl bg-white shadow-sm border border-gray-100"
+            accessibilityLabel="戻る"
+          >
+            <ArrowLeft size={20} color="#374151" />
+          </TouchableOpacity>
+          <View>
+            <Text className="text-gray-900 text-lg font-bold">{initialFolder ? initialFolder : '検索'}</Text>
+            {initialFolder && (
+              <Text className="text-sm text-gray-500">{displayNotes.length}件のメモ</Text>
             )}
-          </div>
-        </section>
-      )}
+          </View>
+        </View>
 
-      {/* 検索履歴 */}
-      {!searchQuery && !initialFolder && (
-        <>
-          <section className="mb-6">
-            <h2 className="mb-3 text-gray-900 flex items-center gap-2">
-              <div className="w-1 h-5 bg-orange-500 rounded-full"></div>
-              検索履歴
-            </h2>
-            <div className="space-y-2">
-              {searchHistory.map((query) => (
-                <button
-                  key={query}
-                  onClick={() => setSearchQuery(query)}
-                  className="w-full flex items-center justify-between p-3 bg-white hover:bg-gray-50 rounded-xl transition-all shadow-sm border border-gray-100 group text-left"
-                >
-                  <span className="text-gray-700 group-hover:text-gray-900">{query}</span>
-                  <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-blue-500 group-hover:translate-x-1 transition-all" />
-                </button>
-              ))}
-            </div>
-          </section>
+        {/* 検索バー */}
+        <View className="mb-6">
+          <View className="relative justify-center">
+            <View className="absolute left-4 z-10">
+               <Search size={20} color="#9CA3AF" />
+            </View>
+            <TextInput
+              placeholder="メモを検索..."
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              className="w-full pl-12 pr-12 py-3 bg-white border border-gray-200 rounded-xl text-base"
+            />
+            {searchQuery ? (
+              <TouchableOpacity
+                onPress={() => setSearchQuery('')}
+                className="absolute right-3 w-6 h-6 items-center justify-center rounded-full bg-gray-200"
+              >
+                <X size={14} color="#4B5563" />
+              </TouchableOpacity>
+            ) : null}
+          </View>
+        </View>
 
-          {/* タグ候補 */}
-          <section>
-            <h2 className="mb-3 text-gray-900 flex items-center gap-2">
-              <div className="w-1 h-5 bg-purple-500 rounded-full"></div>
-              人気のタグ
-            </h2>
-            <div className="flex flex-wrap gap-2">
-              {popularTags.map((tag) => (
-                <button
-                  key={tag}
-                  onClick={() => setSearchQuery(tag)}
-                  className="flex items-center gap-2 px-4 py-2 bg-white hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 rounded-lg transition-all shadow-sm hover:shadow border border-gray-100 group"
-                >
-                  <div className="w-2 h-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full"></div>
-                  <span className="text-sm text-gray-700 group-hover:text-gray-900">{tag}</span>
-                </button>
-              ))}
-            </div>
-          </section>
-        </>
-      )}
+        {/* 検索結果 */}
+        {(searchQuery || initialFolder) && (
+          <View className="mb-6">
+            <View className="mb-3 flex-row items-center gap-2">
+              <View className="w-1 h-5 bg-blue-500 rounded-full" />
+              <Text className="text-gray-900 font-bold">
+                {searchQuery ? `検索結果 (${filteredNotes.length}件)` : `すべてのメモ (${filteredNotes.length}件)`}
+              </Text>
+            </View>
+            <View className="gap-2">
+              {filteredNotes.length > 0 ? (
+                filteredNotes.map((note) => (
+                  <View
+                    key={note.id}
+                    className="w-full p-3 bg-white rounded-xl shadow-sm border border-gray-100"
+                  >
+                    <View className="flex-row items-start justify-between gap-2">
+                      <TouchableOpacity
+                        onPress={() => onNoteClick(note.id)}
+                        className="flex-1"
+                      >
+                        <Text className="mb-2 text-gray-900 font-medium text-base">{note.title}</Text>
+                        <View className="flex-row flex-wrap gap-1.5 mb-2">
+                          {note.tags.slice(0, 3).map((tag) => (
+                            <View
+                              key={tag}
+                              className="px-2 py-0.5 bg-gray-100 rounded-lg border border-gray-200"
+                            >
+                              <Text className="text-gray-700 text-xs">#{tag}</Text>
+                            </View>
+                          ))}
+                        </View>
+                        <View className="flex-row items-center gap-2">
+                          <View className="w-1 h-1 rounded-full bg-gray-400" />
+                          <Text className="text-sm text-gray-500">{formatDate(note.date)}</Text>
+                        </View>
+                      </TouchableOpacity>
+                      
+                      {/* Menu Button */}
+                      <TouchableOpacity
+                        onPress={() => handleMenuPress(note)}
+                        className="w-8 h-8 items-center justify-center rounded-lg"
+                      >
+                        <MoreVertical size={16} color="#4B5563" />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                ))
+              ) : (
+                <View className="py-8 bg-white rounded-xl border border-gray-100 items-center">
+                  <Text className="text-gray-400">該当するメモが見つかりませんでした</Text>
+                </View>
+              )}
+            </View>
+          </View>
+        )}
+
+        {/* 検索履歴 */}
+        {!searchQuery && !initialFolder && (
+          <>
+            <View className="mb-6">
+              <View className="mb-3 flex-row items-center gap-2">
+                <View className="w-1 h-5 bg-orange-500 rounded-full" />
+                <Text className="text-gray-900 font-bold">検索履歴</Text>
+              </View>
+              <View className="gap-2">
+                {searchHistory.map((query) => (
+                  <TouchableOpacity
+                    key={query}
+                    onPress={() => setSearchQuery(query)}
+                    className="w-full flex-row items-center justify-between p-3 bg-white rounded-xl shadow-sm border border-gray-100"
+                  >
+                    <Text className="text-gray-700">{query}</Text>
+                    <ChevronRight size={20} color="#9CA3AF" />
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+
+            {/* タグ候補 */}
+            <View>
+              <View className="mb-3 flex-row items-center gap-2">
+                <View className="w-1 h-5 bg-purple-500 rounded-full" />
+                <Text className="text-gray-900 font-bold">人気のタグ</Text>
+              </View>
+              <View className="flex-row flex-wrap gap-2">
+                {popularTags.map((tag) => (
+                  <TouchableOpacity
+                    key={tag}
+                    onPress={() => setSearchQuery(tag)}
+                    className="flex-row items-center gap-2 px-4 py-2 bg-white rounded-lg shadow-sm border border-gray-100"
+                  >
+                    <View className="w-2 h-2 bg-purple-500 rounded-full" />
+                    <Text className="text-sm text-gray-700">{tag}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          </>
+        )}
+      </ScrollView>
 
       {/* Edit Title Modal */}
       <EditTitleModal
@@ -223,7 +233,6 @@ export function SearchScreen({ notes, onNoteClick, onBack, initialFolder, onDele
         note={editingNote}
         onTitleChange={(newTitle) => {
           if (onUpdateNote && editingNoteId && editingNote) {
-            // summaryの最初の行（# タイトル）を更新
             const lines = editingNote.summary.split('\n');
             if (lines[0].startsWith('#')) {
               lines[0] = `# ${newTitle}`;
@@ -235,6 +244,6 @@ export function SearchScreen({ notes, onNoteClick, onBack, initialFolder, onDele
           }
         }}
       />
-    </div>
+    </View>
   );
 }

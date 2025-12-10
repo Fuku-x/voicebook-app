@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
+import { View, Text, TouchableOpacity, Modal, TextInput, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import { X } from 'lucide-react-native';
 import type { Note } from '../App';
 
 type EditTitleModalProps = {
@@ -19,8 +20,6 @@ export function EditTitleModal({ isOpen, note, onClose, onTitleChange }: EditTit
     }
   }, [isOpen, note]);
 
-  if (!isOpen || !note) return null;
-
   const handleSave = () => {
     if (title.trim()) {
       onTitleChange(title.trim());
@@ -28,59 +27,61 @@ export function EditTitleModal({ isOpen, note, onClose, onTitleChange }: EditTit
     }
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleSave();
-    } else if (e.key === 'Escape') {
-      onClose();
-    }
-  };
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl">
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-          <h2 className="text-lg text-gray-900">タイトルを編集</h2>
-          <button
-            onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
-            aria-label="閉じる"
-          >
-            <X className="w-5 h-5 text-gray-600" />
-          </button>
-        </div>
+    <Modal
+      visible={isOpen}
+      transparent={true}
+      animationType="fade"
+      onRequestClose={onClose}
+    >
+      <TouchableWithoutFeedback onPress={onClose}>
+        <View className="flex-1 justify-center items-center bg-black/40 p-4">
+          <TouchableWithoutFeedback>
+            <KeyboardAvoidingView 
+              behavior={Platform.OS === "ios" ? "padding" : "height"}
+              className="w-full max-w-md bg-white rounded-2xl shadow-2xl"
+            >
+              <View className="flex-row items-center justify-between px-6 py-4 border-b border-gray-100">
+                <Text className="text-lg text-gray-900 font-medium">タイトルを編集</Text>
+                <TouchableOpacity
+                  onPress={onClose}
+                  className="w-8 h-8 items-center justify-center rounded-lg bg-gray-100"
+                >
+                  <X size={20} color="#4B5563" />
+                </TouchableOpacity>
+              </View>
 
-        {/* Content */}
-        <div className="px-6 py-6">
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            onKeyDown={handleKeyPress}
-            placeholder="タイトルを入力"
-            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-            autoFocus
-          />
-        </div>
+              <View className="px-6 py-6">
+                <TextInput
+                  value={title}
+                  onChangeText={setTitle}
+                  placeholder="タイトルを入力"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl text-base"
+                  autoFocus
+                  onSubmitEditing={handleSave}
+                  returnKeyType="done"
+                />
+              </View>
 
-        {/* Footer */}
-        <div className="flex items-center justify-end gap-3 px-6 py-4 bg-gray-50 rounded-b-2xl">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 text-gray-700 hover:bg-gray-200 rounded-lg transition-colors"
-          >
-            キャンセル
-          </button>
-          <button
-            onClick={handleSave}
-            disabled={!title.trim()}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
-          >
-            保存
-          </button>
-        </div>
-      </div>
-    </div>
+              <View className="flex-row items-center justify-end gap-3 px-6 py-4 bg-gray-50 rounded-b-2xl">
+                <TouchableOpacity
+                  onPress={onClose}
+                  className="px-4 py-2 rounded-lg bg-gray-200"
+                >
+                  <Text className="text-gray-700 font-medium">キャンセル</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={handleSave}
+                  disabled={!title.trim()}
+                  className={`px-4 py-2 rounded-lg ${!title.trim() ? 'bg-gray-300' : 'bg-blue-600'}`}
+                >
+                  <Text className="text-white font-medium">保存</Text>
+                </TouchableOpacity>
+              </View>
+            </KeyboardAvoidingView>
+          </TouchableWithoutFeedback>
+        </View>
+      </TouchableWithoutFeedback>
+    </Modal>
   );
 }

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { X, Pause, Play, ArrowLeft } from 'lucide-react';
+import { View, Text, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { X, Pause, Play, ArrowLeft } from 'lucide-react-native';
 
 type RecordScreenProps = {
   isRecording: boolean;
@@ -28,9 +29,9 @@ export function RecordScreen({
   }, []);
 
   useEffect(() => {
-    let interval: number | undefined;
+    let interval: NodeJS.Timeout | undefined;
     if (isRecording && !isPaused) {
-      interval = window.setInterval(() => {
+      interval = setInterval(() => {
         setDuration((prev) => prev + 1);
         
         // リアルタイム文字起こしのシミュレーション
@@ -59,13 +60,24 @@ export function RecordScreen({
   };
 
   const handleCancel = () => {
-    if (window.confirm('録音を破棄しますか?')) {
-      onStopRecording();
-      setDuration(0);
-      setTranscript('');
-      setIsPaused(false);
-      onBack();
-    }
+    Alert.alert(
+      '確認',
+      '録音を破棄しますか?',
+      [
+        { text: 'キャンセル', style: 'cancel' },
+        { 
+          text: '破棄', 
+          style: 'destructive',
+          onPress: () => {
+            onStopRecording();
+            setDuration(0);
+            setTranscript('');
+            setIsPaused(false);
+            onBack();
+          }
+        }
+      ]
+    );
   };
 
   const handleComplete = () => {
@@ -80,74 +92,76 @@ export function RecordScreen({
   };
 
   return (
-    <div className="h-full flex flex-col bg-gradient-to-b from-gray-50 to-white">
+    <View className="flex-1 flex-col bg-gray-50">
       {/* ヘッダー */}
-      <div className="p-4 flex justify-between items-center">
-        <button
-          onClick={handleCancel}
-          className="w-10 h-10 flex items-center justify-center rounded-xl bg-white hover:bg-gray-100 transition-all shadow-sm border border-gray-100"
-          aria-label="戻る"
+      <View className="p-4 flex-row justify-between items-center bg-white">
+        <TouchableOpacity
+          onPress={handleCancel}
+          className="w-10 h-10 items-center justify-center rounded-xl bg-white shadow-sm border border-gray-100"
+          accessibilityLabel="戻る"
         >
-          <ArrowLeft className="w-5 h-5 text-gray-700" />
-        </button>
-        <div className="flex items-center gap-2.5 px-3.5 py-1.5 bg-red-50 rounded-xl border border-red-100">
-          <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-sm" />
-          <span className="text-sm text-red-700 tabular-nums">{formatTime(duration)}</span>
-        </div>
-        <div className="w-10" />
-      </div>
+          <ArrowLeft size={20} color="#374151" />
+        </TouchableOpacity>
+        <View className="flex-row items-center gap-2.5 px-3.5 py-1.5 bg-red-50 rounded-xl border border-red-100">
+          <View className="w-2 h-2 bg-red-500 rounded-full" />
+          <Text className="text-sm text-red-700 font-variant-numeric">{formatTime(duration)}</Text>
+        </View>
+        <View className="w-10" />
+      </View>
 
       {/* 波形表示（簡易版） */}
-      <div className="px-4 mb-4">
-        <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-          <div className="flex items-center justify-center gap-1 h-14">
-            {[...Array(40)].map((_, i) => (
-              <div
+      <View className="px-4 mb-4 mt-4">
+        <View className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+          <View className="flex-row items-center justify-center gap-1 h-14">
+            {[...Array(20)].map((_, i) => (
+              <View
                 key={i}
-                className="w-1 rounded-full transition-all"
+                className="w-1 rounded-full"
                 style={{
-                  height: isPaused ? '8px' : `${Math.random() * 48 + 8}px`,
+                  height: isPaused ? 8 : Math.random() * 48 + 8,
                   opacity: isPaused ? 0.3 : 1,
-                  backgroundColor: isPaused ? '#9CA3AF' : `hsl(${220 + i * 2}, 80%, ${50 + Math.random() * 20}%)`,
+                  backgroundColor: isPaused ? '#9CA3AF' : `hsl(${220 + i * 4}, 80%, ${50 + Math.random() * 20}%)`,
                 }}
               />
             ))}
-          </div>
-        </div>
-      </div>
+          </View>
+        </View>
+      </View>
 
       {/* リアルタイム文字起こし */}
-      <div className="flex-1 px-4 pb-4 overflow-auto">
-        <div className="bg-white rounded-xl p-4 h-full shadow-sm border border-gray-100">
-          <div className="mb-2 flex items-center gap-2">
-            <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
-            <span className="text-sm text-gray-600">リアルタイム文字起こし</span>
-          </div>
-          <div className="text-gray-700 leading-relaxed whitespace-pre-wrap">
-            {transcript || '音声を認識中...'}
-          </div>
-        </div>
-      </div>
+      <View className="flex-1 px-4 pb-4">
+        <View className="bg-white rounded-xl p-4 flex-1 shadow-sm border border-gray-100">
+          <View className="mb-2 flex-row items-center gap-2">
+            <View className="w-1.5 h-1.5 bg-blue-500 rounded-full" />
+            <Text className="text-sm text-gray-600">リアルタイム文字起こし</Text>
+          </View>
+          <ScrollView className="flex-1">
+            <Text className="text-gray-700 leading-relaxed">
+              {transcript || '音声を認識中...'}
+            </Text>
+          </ScrollView>
+        </View>
+      </View>
 
       {/* コントロール */}
-      <div className="p-4 flex items-center justify-between bg-white border-t border-gray-100">
-        <button
-          onClick={handleTogglePause}
-          className="w-12 h-12 bg-gray-100 hover:bg-gray-200 rounded-xl flex items-center justify-center transition-all shadow-sm"
+      <View className="p-4 flex-row items-center justify-between bg-white border-t border-gray-100">
+        <TouchableOpacity
+          onPress={handleTogglePause}
+          className="w-12 h-12 bg-gray-100 rounded-xl items-center justify-center shadow-sm"
         >
           {isPaused ? (
-            <Play className="w-5 h-5 text-gray-700" />
+            <Play size={20} color="#374151" />
           ) : (
-            <Pause className="w-5 h-5 text-gray-700" />
+            <Pause size={20} color="#374151" />
           )}
-        </button>
-        <button
-          onClick={handleComplete}
-          className="flex-1 ml-3 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl transition-all shadow-lg hover:shadow-xl"
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={handleComplete}
+          className="flex-1 ml-3 px-6 py-3 bg-blue-600 rounded-xl shadow-lg items-center justify-center"
         >
-          完了して要約する
-        </button>
-      </div>
-    </div>
+          <Text className="text-white font-bold text-base">完了して要約する</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 }

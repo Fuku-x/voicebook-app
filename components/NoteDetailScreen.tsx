@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { Plus, X, ChevronRight, ArrowLeft, FileText, MoreVertical } from 'lucide-react';
-import ReactMarkdown from 'react-markdown';
+import { View, Text, TouchableOpacity, ScrollView, TextInput, Alert, Image } from 'react-native';
+import { Plus, X, ChevronRight, ArrowLeft, FileText, MoreVertical } from 'lucide-react-native';
+import Markdown from 'react-native-markdown-display';
 import type { Note } from '../App';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu';
 
 type NoteDetailScreenProps = {
   note: Note;
@@ -59,140 +59,132 @@ export function NoteDetailScreen({
     return `${year}-${month}/${day} ${hours}:${minutes}`;
   };
 
+  const handleMenuPress = () => {
+    Alert.alert(
+      'メニュー',
+      undefined,
+      [
+        { text: '編集', onPress: handleEditTranscriptClick },
+        { 
+          text: '削除', 
+          style: 'destructive',
+          onPress: () => {
+             Alert.alert(
+               '削除の確認',
+               'このメモを削除しますか？',
+               [
+                 { text: 'キャンセル', style: 'cancel' },
+                 { text: '削除', style: 'destructive', onPress: () => onDeleteNote(note.id) }
+               ]
+             );
+          }
+        },
+        { text: 'キャンセル', style: 'cancel' }
+      ]
+    );
+  };
+
   return (
-    <div className="w-full min-h-screen bg-gradient-to-b from-gray-50 to-white px-4 py-4">
-      {/* Header with Back Button and Menu */}
-      <div className="flex items-center justify-between mb-4">
-        <button
-          onClick={onBack}
-          className="w-10 h-10 flex items-center justify-center rounded-xl bg-white hover:bg-gray-100 transition-all shadow-sm border border-gray-100"
-          aria-label="戻る"
-        >
-          <ArrowLeft className="w-5 h-5 text-gray-700" />
-        </button>
-        
-        {/* Menu Button */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button
-              className="w-10 h-10 flex items-center justify-center rounded-xl bg-white hover:bg-gray-100 transition-all shadow-sm border border-gray-100"
-              aria-label="メニュー"
-            >
-              <MoreVertical className="w-5 h-5 text-gray-700" />
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem
-              onClick={handleEditTranscriptClick}
-            >
-              編集
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => {
-                if (window.confirm('このメモを削除しますか？')) {
-                  onDeleteNote(note.id);
-                }
-              }}
-              className="text-red-600 focus:text-red-600"
-            >
-              削除
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-
-      {/* タイトル */}
-      <h1 className="mb-4 text-gray-900">{note.title}</h1>
-
-      {/* メタ情報 */}
-      <div className="mb-4 flex items-center gap-3 text-sm text-gray-500">
-        <div className="flex items-center gap-2">
-          <div className="w-1 h-1 rounded-full bg-gray-400"></div>
-          {formatDate(note.date)}
-        </div>
-        {note.folder && (
-          <>
-            <div className="w-1 h-1 rounded-full bg-gray-300"></div>
-            <div>{note.folder}</div>
-          </>
-        )}
-      </div>
-
-      {/* タグ一覧 */}
-      <div className="mb-4">
-        <div className="flex flex-wrap gap-1.5">
-          {note.tags.map((tag) => (
-            <div
-              key={tag}
-              className="group flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg border border-gray-200 shadow-sm"
-            >
-              <span className="text-sm">#{tag}</span>
-              <button
-                onClick={() => handleRemoveTag(tag)}
-                className="opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white rounded-full p-0.5"
-              >
-                <X className="w-3 h-3" />
-              </button>
-            </div>
-          ))}
+    <View className="flex-1 bg-white">
+      <ScrollView className="flex-1 px-4 py-4" contentContainerStyle={{ paddingBottom: 32 }}>
+        {/* Header with Back Button and Menu */}
+        <View className="flex-row items-center justify-between mb-4">
+          <TouchableOpacity
+            onPress={onBack}
+            className="w-10 h-10 items-center justify-center rounded-xl bg-white shadow-sm border border-gray-100"
+            accessibilityLabel="戻る"
+          >
+            <ArrowLeft size={20} color="#374151" />
+          </TouchableOpacity>
           
-          {isAddingTag ? (
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
-                value={newTag}
-                onChange={(e) => setNewTag(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleAddTag()}
-                onBlur={handleAddTag}
-                placeholder="タグ名"
-                className="px-3 py-1.5 border border-blue-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
-                autoFocus
-              />
-            </div>
-          ) : (
-            <button
-              onClick={() => setIsAddingTag(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-gray-50 text-gray-600 rounded-lg transition-all border border-gray-200 shadow-sm"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span className="text-sm">タグを追加</span>
-            </button>
-          )}
-        </div>
-      </div>
+          {/* Menu Button */}
+          <TouchableOpacity
+            onPress={handleMenuPress}
+            className="w-10 h-10 items-center justify-center rounded-xl bg-white shadow-sm border border-gray-100"
+            accessibilityLabel="メニュー"
+          >
+            <MoreVertical size={20} color="#374151" />
+          </TouchableOpacity>
+        </View>
 
-      {/* 本文（Note） */}
-      <div className="mb-4">
-        <div className="px-2 py-2">
-          <div className="prose prose-sm max-w-none">
-            <ReactMarkdown
-              className="text-gray-700 leading-relaxed"
-              components={{
-                h1: ({node, ...props}) => <h1 className="text-xl mt-4 mb-2" {...props} />,
-                h2: ({node, ...props}) => <h2 className="text-lg mt-3 mb-2" {...props} />,
-                h3: ({node, ...props}) => <h3 className="text-base mt-2 mb-1" {...props} />,
-                p: ({node, ...props}) => <p className="mb-3" {...props} />,
-                ul: ({node, ...props}) => <ul className="list-disc list-inside mb-3 space-y-1" {...props} />,
-                ol: ({node, ...props}) => <ol className="list-decimal list-inside mb-3 space-y-1" {...props} />,
-                li: ({node, ...props}) => <li className="ml-2" {...props} />,
-                code: ({node, inline, ...props}: any) => 
-                  inline ? (
-                    <code className="bg-gray-100 px-1.5 py-0.5 rounded text-sm" {...props} />
-                  ) : (
-                    <code className="block bg-gray-100 p-3 rounded-lg my-2 text-sm" {...props} />
-                  ),
-                blockquote: ({node, ...props}) => (
-                  <blockquote className="border-l-4 border-blue-500 pl-4 italic text-gray-600 my-3" {...props} />
-                ),
-                strong: ({node, ...props}) => <strong className="font-semibold" {...props} />,
-                em: ({node, ...props}) => <em className="italic" {...props} />,
-              }}
-            >
-              {note.summary}
-            </ReactMarkdown>
-          </div>
-        </div>
-      </div>
-    </div>
+        {/* タイトル */}
+        <Text className="mb-4 text-2xl font-bold text-gray-900">{note.title}</Text>
+
+        {/* メタ情報 */}
+        <View className="mb-4 flex-row items-center gap-3">
+          <View className="flex-row items-center gap-2">
+            <View className="w-1 h-1 rounded-full bg-gray-400" />
+            <Text className="text-sm text-gray-500">{formatDate(note.date)}</Text>
+          </View>
+          {note.folder && (
+            <View className="flex-row items-center gap-2">
+              <View className="w-1 h-1 rounded-full bg-gray-300" />
+              <Text className="text-sm text-gray-500">{note.folder}</Text>
+            </View>
+          )}
+        </View>
+
+        {/* タグ一覧 */}
+        <View className="mb-6">
+          <View className="flex-row flex-wrap gap-2">
+            {note.tags.map((tag) => (
+              <View
+                key={tag}
+                className="flex-row items-center gap-1.5 px-3 py-1.5 bg-gray-100 rounded-lg border border-gray-200"
+              >
+                <Text className="text-sm text-gray-700">#{tag}</Text>
+                <TouchableOpacity
+                  onPress={() => handleRemoveTag(tag)}
+                  className="rounded-full bg-gray-200 p-0.5"
+                >
+                  <X size={10} color="#6B7280" />
+                </TouchableOpacity>
+              </View>
+            ))}
+            
+            {isAddingTag ? (
+              <View className="flex-row items-center gap-2">
+                <TextInput
+                  value={newTag}
+                  onChangeText={setNewTag}
+                  onSubmitEditing={handleAddTag}
+                  onBlur={handleAddTag}
+                  placeholder="タグ名"
+                  className="px-3 py-1.5 border border-blue-300 rounded-lg text-sm bg-white min-w-[100px]"
+                  autoFocus
+                />
+              </View>
+            ) : (
+              <TouchableOpacity
+                onPress={() => setIsAddingTag(true)}
+                className="flex-row items-center gap-1.5 px-3 py-1.5 bg-white rounded-lg border border-gray-200 border-dashed"
+              >
+                <Plus size={14} color="#4B5563" />
+                <Text className="text-sm text-gray-600">タグを追加</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+
+        {/* 本文（Note） */}
+        <View className="mb-4 bg-white rounded-xl">
+           <Markdown
+             style={{
+               body: { color: '#374151', fontSize: 16, lineHeight: 24 },
+               heading1: { fontSize: 24, fontWeight: 'bold', marginVertical: 10, color: '#111827' },
+               heading2: { fontSize: 20, fontWeight: 'bold', marginVertical: 8, color: '#1F2937' },
+               heading3: { fontSize: 18, fontWeight: 'bold', marginVertical: 6, color: '#374151' },
+               blockquote: { borderLeftWidth: 4, borderLeftColor: '#3B82F6', paddingLeft: 10, fontStyle: 'italic', color: '#4B5563', marginVertical: 8 },
+               code_inline: { backgroundColor: '#F3F4F6', borderRadius: 4, paddingHorizontal: 4, paddingVertical: 2, fontFamily: 'System' },
+               code_block: { backgroundColor: '#F3F4F6', borderRadius: 8, padding: 12, marginVertical: 8, fontFamily: 'System' },
+               list_item: { marginVertical: 4 },
+               bullet_list: { marginVertical: 8 },
+             }}
+           >
+             {note.summary}
+           </Markdown>
+        </View>
+      </ScrollView>
+    </View>
   );
 }
