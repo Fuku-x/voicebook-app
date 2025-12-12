@@ -18,7 +18,7 @@ export function SearchScreen({ notes, onNoteClick, onBack, initialFolder, onDele
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingNote, setEditingNote] = useState<Note | null>(null);
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
-  
+
   const searchHistory = ['プロジェクト会議', 'デザイン思考', 'アプリアイデア'];
   const popularTags = ['#仕事', '#学習', '#アイデア', '#ミーティング', '#開発'];
 
@@ -29,12 +29,12 @@ export function SearchScreen({ notes, onNoteClick, onBack, initialFolder, onDele
 
   const filteredNotes = searchQuery
     ? displayNotes.filter((note) =>
-        note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        note.summary.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        note.tags.some((tag) =>
-          tag.toLowerCase().includes(searchQuery.toLowerCase())
-        )
+      note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      note.summary.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      note.tags.some((tag) =>
+        tag.toLowerCase().includes(searchQuery.toLowerCase())
       )
+    )
     : displayNotes;
 
   const formatDate = (date: Date) => {
@@ -43,7 +43,7 @@ export function SearchScreen({ notes, onNoteClick, onBack, initialFolder, onDele
     const day = String(date.getDate()).padStart(2, '0');
     const hours = String(date.getHours()).padStart(2, '0');
     const minutes = String(date.getMinutes()).padStart(2, '0');
-    
+
     return `${year}-${month}/${day} ${hours}:${minutes}`;
   };
 
@@ -52,27 +52,27 @@ export function SearchScreen({ notes, onNoteClick, onBack, initialFolder, onDele
       'メニュー',
       note.title,
       [
-        { 
-          text: '編集', 
+        {
+          text: '編集',
           onPress: () => {
             setEditingNote(note);
             setEditingNoteId(note.id);
             setIsEditModalOpen(true);
           }
         },
-        { 
-          text: '削除', 
+        {
+          text: '削除',
           style: 'destructive',
           onPress: () => {
             if (onDeleteNote) {
-               Alert.alert(
-                 '削除の確認',
-                 'このメモを削除しますか？',
-                 [
-                   { text: 'キャンセル', style: 'cancel' },
-                   { text: '削除', style: 'destructive', onPress: () => onDeleteNote(note.id) }
-                 ]
-               );
+              Alert.alert(
+                '削除の確認',
+                'このメモを削除しますか？',
+                [
+                  { text: 'キャンセル', style: 'cancel' },
+                  { text: '削除', style: 'destructive', onPress: () => onDeleteNote(note.id) }
+                ]
+              );
             }
           }
         },
@@ -105,7 +105,7 @@ export function SearchScreen({ notes, onNoteClick, onBack, initialFolder, onDele
         <View className="mb-6">
           <View className="relative justify-center">
             <View className="absolute left-4 z-10">
-               <Search size={20} color="#9CA3AF" />
+              <Search size={20} color="#9CA3AF" />
             </View>
             <TextInput
               placeholder="メモを検索..."
@@ -146,13 +146,13 @@ export function SearchScreen({ notes, onNoteClick, onBack, initialFolder, onDele
                         className="flex-1"
                       >
                         <Text className="mb-2 text-gray-900 font-medium text-base">{note.title}</Text>
-                        <View className="flex-row flex-wrap gap-1.5 mb-2">
+                        <View className="flex-row flex-wrap mb-2">
                           {note.tags.slice(0, 3).map((tag) => (
                             <View
                               key={tag}
-                              className="px-2 py-0.5 bg-gray-100 rounded-lg border border-gray-200"
+                              className="px-2 py-1 bg-gray-100 rounded-lg border border-gray-200 mr-1.5 mb-1.5"
                             >
-                              <Text className="text-gray-700 text-xs">#{tag}</Text>
+                              <Text className="text-gray-700 text-xs leading-none">#{tag}</Text>
                             </View>
                           ))}
                         </View>
@@ -161,7 +161,7 @@ export function SearchScreen({ notes, onNoteClick, onBack, initialFolder, onDele
                           <Text className="text-sm text-gray-500">{formatDate(note.date)}</Text>
                         </View>
                       </TouchableOpacity>
-                      
+
                       {/* Menu Button */}
                       <TouchableOpacity
                         onPress={() => handleMenuPress(note)}
@@ -209,15 +209,15 @@ export function SearchScreen({ notes, onNoteClick, onBack, initialFolder, onDele
                 <View className="w-1 h-5 bg-purple-500 rounded-full" />
                 <Text className="text-gray-900 font-bold">人気のタグ</Text>
               </View>
-              <View className="flex-row flex-wrap gap-2">
+              <View className="flex-row flex-wrap">
                 {popularTags.map((tag) => (
                   <TouchableOpacity
                     key={tag}
                     onPress={() => setSearchQuery(tag)}
-                    className="flex-row items-center gap-2 px-4 py-2 bg-white rounded-lg shadow-sm border border-gray-100"
+                    className="flex-row items-center px-4 py-2 bg-white rounded-lg shadow-sm border border-gray-100 mr-2 mb-2"
                   >
-                    <View className="w-2 h-2 bg-purple-500 rounded-full" />
-                    <Text className="text-sm text-gray-700">{tag}</Text>
+                    <View className="w-2 h-2 bg-purple-500 rounded-full mr-2" />
+                    <Text className="text-sm text-gray-700 leading-none">{tag}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
