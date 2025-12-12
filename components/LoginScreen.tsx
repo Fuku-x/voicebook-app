@@ -68,9 +68,9 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
       <View className="w-full max-w-sm">
         <TouchableOpacity
           onPress={handleGoogleLogin}
-          className="w-full relative flex-row items-center justify-center px-6 py-4 bg-white rounded-xl shadow-lg border border-gray-200"
+          className="w-full flex-row items-center justify-center px-6 py-4 bg-white rounded-xl shadow-lg border border-gray-200"
         >
-          <View className="absolute left-6">
+          <View className="mr-3">
             <Svg width={24} height={24} viewBox="0 0 24 24">
               <Path
                 fill="#4285F4"
@@ -90,7 +90,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
               />
             </Svg>
           </View>
-          <Text className="text-gray-900 font-medium text-base text-center" style={{ includeFontPadding: false }}>Googleでログイン</Text>
+          <Text className="text-gray-900 font-medium text-base leading-none">Googleでログイン</Text>
         </TouchableOpacity>
 
         <Text className="text-center text-sm text-gray-500 mt-6 px-4">

@@ -33,7 +33,7 @@ export function AccountScreen({ user, onBack, onUpdateUser, onLogout }: AccountS
   };
 
   return (
-    <KeyboardAvoidingView 
+    <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       className="flex-1 bg-white"
     >
@@ -139,10 +139,12 @@ export function AccountScreen({ user, onBack, onUpdateUser, onLogout }: AccountS
         <View className="px-4 pb-8">
           <TouchableOpacity
             onPress={handleLogout}
-            className="w-full flex-row items-center justify-center gap-2 px-6 py-4 bg-white rounded-2xl shadow-sm border border-red-200"
+            className="w-full flex-row items-center justify-center px-6 py-4 bg-white rounded-2xl shadow-sm border border-red-200"
           >
-            <LogOut size={20} color="#DC2626" />
-            <Text className="text-red-600 font-bold text-base">ログアウト</Text>
+            <View className="mr-2">
+              <LogOut size={20} color="#DC2626" />
+            </View>
+            <Text className="text-red-600 font-bold text-base leading-none">ログアウト</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

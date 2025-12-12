@@ -125,9 +125,9 @@ export function HomeScreen({ notes, user, onNoteClick, onSearchClick, onFolderCl
         <View className="bg-white pb-6 pt-2 z-10 flex-row items-center justify-between">
           <TouchableOpacity
             onPress={onAccountClick}
-            className="flex-row items-center justify-center px-4 py-2 bg-gray-50 rounded-xl"
+            className="flex-row items-center justify-center px-3 py-2 bg-gray-50 rounded-lg"
           >
-            <Text className="text-sm text-gray-900 font-medium text-center" style={{ includeFontPadding: false }}>
+            <Text className="text-sm text-gray-900 font-medium leading-none">
               {user?.name || 'Workspace'}
             </Text>
           </TouchableOpacity>

@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { useState, useEffect, useRef } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, Alert, Animated } from 'react-native';
 import { X, Pause, Play, ArrowLeft } from 'lucide-react-native';
 
 type RecordScreenProps = {
@@ -9,6 +9,11 @@ type RecordScreenProps = {
   onComplete: (transcript: string, duration: number) => void;
   onBack: () => void;
 };
+
+const BAR_WIDTH = 3;
+const BAR_MARGIN = 1;
+const BAR_TOTAL_WIDTH = BAR_WIDTH + BAR_MARGIN * 2; // 5px per bar
+const VISIBLE_BARS = 60; // 表示領域に収まるバー数
 
 export function RecordScreen({
   isRecording,
@@ -20,6 +25,8 @@ export function RecordScreen({
   const [duration, setDuration] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [transcript, setTranscript] = useState('');
+  const [waveformData, setWaveformData] = useState<number[]>([]);
+  const scrollX = useRef(new Animated.Value(0)).current;
 
   // 画面に入ったら自動的に録音開始
   useEffect(() => {
@@ -28,12 +35,48 @@ export function RecordScreen({
     }
   }, []);
 
+  // 波形データの更新（10ms毎で滑らか）
+  const barCount = useRef(0);
+  const updateCount = useRef(0);
+  const scrollPosition = useRef(0); // 連続的なスクロール位置
+
+  useEffect(() => {
+    let waveformInterval: NodeJS.Timeout | undefined;
+    if (isRecording && !isPaused) {
+      waveformInterval = setInterval(() => {
+        updateCount.current += 1;
+
+        // 毎フレーム少しずつスクロール（滑らかに）
+        scrollPosition.current -= BAR_TOTAL_WIDTH / 5; // 5フレームで1バー分移動（倍速）
+        scrollX.setValue(scrollPosition.current);
+
+        // 5回に1回だけバーを追加（倍速）
+        if (updateCount.current % 5 === 0) {
+          // 疑似的な音量レベルを生成（実際のアプリではマイクの音量を使用）
+          const newVolume = Math.random() * 70 + 10; // 10-80の範囲
+
+          setWaveformData((prev) => {
+            // 新しいバーを追加（右端に）- 削除しない
+            return [...prev, newVolume];
+          });
+
+          barCount.current += 1;
+        }
+      }, 10); // 10ms毎に更新（非常に滑らか）
+    }
+    // 一時停止時はintervalを止めるだけで、scrollXはそのまま維持
+    return () => {
+      if (waveformInterval) clearInterval(waveformInterval);
+    };
+  }, [isRecording, isPaused]);
+
+  // 秒数と文字起こしの更新
   useEffect(() => {
     let interval: NodeJS.Timeout | undefined;
     if (isRecording && !isPaused) {
       interval = setInterval(() => {
         setDuration((prev) => prev + 1);
-        
+
         // リアルタイム文字起こしのシミュレーション
         if (duration % 3 === 0) {
           const mockPhrases = [
@@ -65,8 +108,8 @@ export function RecordScreen({
       '録音を破棄しますか?',
       [
         { text: 'キャンセル', style: 'cancel' },
-        { 
-          text: '破棄', 
+        {
+          text: '破棄',
           style: 'destructive',
           onPress: () => {
             onStopRecording();
@@ -102,28 +145,40 @@ export function RecordScreen({
         >
           <ArrowLeft size={20} color="#374151" />
         </TouchableOpacity>
-        <View className="flex-row items-center gap-2.5 px-3.5 py-1.5 bg-red-50 rounded-xl border border-red-100">
+        <View className="flex-row items-center px-3 py-2 bg-red-50 rounded-xl border border-red-100">
           <View className="w-2 h-2 bg-red-500 rounded-full" />
-          <Text className="text-sm text-red-700 font-variant-numeric">{formatTime(duration)}</Text>
+          <Text className="text-sm text-red-700 ml-2 leading-none">{formatTime(duration)}</Text>
         </View>
         <View className="w-10" />
       </View>
 
-      {/* 波形表示（簡易版） */}
+      {/* 波形表示（iPhoneボイスメモ風） */}
       <View className="px-4 mb-4 mt-4">
-        <View className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-          <View className="flex-row items-center justify-center gap-1 h-14">
-            {[...Array(20)].map((_, i) => (
-              <View
-                key={i}
-                className="w-1 rounded-full"
-                style={{
-                  height: isPaused ? 8 : Math.random() * 48 + 8,
-                  opacity: isPaused ? 0.3 : 1,
-                  backgroundColor: isPaused ? '#9CA3AF' : `hsl(${220 + i * 4}, 80%, ${50 + Math.random() * 20}%)`,
-                }}
-              />
-            ))}
+        <View className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 overflow-hidden">
+          <View className="h-24 flex-row items-center" style={{ width: VISIBLE_BARS * BAR_TOTAL_WIDTH }}>
+            <Animated.View
+              className="flex-row items-center"
+              style={{
+                // 右端の枠外から始まるようにオフセット
+                transform: [{
+                  translateX: Animated.add(scrollX, (VISIBLE_BARS + 5) * BAR_TOTAL_WIDTH)
+                }]
+              }}
+            >
+              {waveformData.map((height, i) => (
+                <View
+                  key={i}
+                  style={{
+                    width: BAR_WIDTH,
+                    height: Math.max(4, height), // 一時停止時も高さを維持
+                    marginHorizontal: BAR_MARGIN,
+                    borderRadius: 2,
+                    opacity: isPaused ? 0.5 : 0.9,
+                    backgroundColor: isPaused ? '#6B7280' : '#3B82F6',
+                  }}
+                />
+              ))}
+            </Animated.View>
           </View>
         </View>
       </View>
