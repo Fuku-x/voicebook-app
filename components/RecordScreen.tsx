@@ -35,34 +35,29 @@ export function RecordScreen({
     }
   }, []);
 
-  // 波形データの更新（10ms毎で滑らか）
+  // 波形データの更新（50ms毎で適度な滑らかさ）
   const barCount = useRef(0);
-  const updateCount = useRef(0);
   const scrollPosition = useRef(0); // 連続的なスクロール位置
 
   useEffect(() => {
     let waveformInterval: NodeJS.Timeout | undefined;
     if (isRecording && !isPaused) {
       waveformInterval = setInterval(() => {
-        updateCount.current += 1;
-
-        // 毎フレーム少しずつスクロール（滑らかに）
-        scrollPosition.current -= BAR_TOTAL_WIDTH / 5; // 5フレームで1バー分移動（倍速）
+        // スクロール位置を更新（滑らかに）
+        scrollPosition.current -= BAR_TOTAL_WIDTH; // 1バー分移動
         scrollX.setValue(scrollPosition.current);
 
-        // 5回に1回だけバーを追加（倍速）
-        if (updateCount.current % 5 === 0) {
-          // 疑似的な音量レベルを生成（実際のアプリではマイクの音量を使用）
-          const newVolume = Math.random() * 70 + 10; // 10-80の範囲
+        // バーを追加
+        // 疑似的な音量レベルを生成（実際のアプリではマイクの音量を使用）
+        const newVolume = Math.random() * 70 + 10; // 10-80の範囲
 
-          setWaveformData((prev) => {
-            // 新しいバーを追加（右端に）- 削除しない
-            return [...prev, newVolume];
-          });
+        setWaveformData((prev) => {
+          // 新しいバーを追加（右端に）- 削除しない
+          return [...prev, newVolume];
+        });
 
-          barCount.current += 1;
-        }
-      }, 10); // 10ms毎に更新（非常に滑らか）
+        barCount.current += 1;
+      }, 50); // 50ms毎に更新（パフォーマンスと滑らかさのバランス）
     }
     // 一時停止時はintervalを止めるだけで、scrollXはそのまま維持
     return () => {
